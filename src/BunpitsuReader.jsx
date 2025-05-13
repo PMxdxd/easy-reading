@@ -28,10 +28,6 @@ function BunpitsuReader({ text }) {
         // Rustバックエンドの文節分割処理を呼び出し
         const result = await invoke("split_bunsetsu", { text });
         setPhrases(result);
-
-        // テキストの統計情報を取得
-        const stats = await invoke("get_text_stats", { text });
-        setTextStats(stats);
       } catch (err) {
         setError(`文節の分割に失敗しました: ${err}`);
         // バックアップとして単純な分割を行う
@@ -240,34 +236,11 @@ function BunpitsuReader({ text }) {
           >
             次へ
           </button>
-
-          <button
-            onClick={toggleStats}
-            disabled={isLoading || textStats === null}
-          >
-            {showStats ? "統計を隠す" : "統計を表示"}
-          </button>
         </div>
       </div>
 
       {/* エラーメッセージ */}
       {error && <div className="error">{error}</div>}
-
-      {/* 統計情報 */}
-      {showStats && textStats && (
-        <div className="text-stats">
-          <h3>テキスト分析</h3>
-          <ul>
-            <li>文字数: {textStats.char_count}</li>
-            <li>単語数: {textStats.token_count}</li>
-            <li>名詞: {textStats.noun_count}</li>
-            <li>動詞: {textStats.verb_count}</li>
-            <li>形容詞: {textStats.adj_count}</li>
-            <li>助詞: {textStats.particle_count}</li>
-            <li>推定文節数: {phrases.length}</li>
-          </ul>
-        </div>
-      )}
 
       {/* ローディング表示 */}
       {isLoading ? (

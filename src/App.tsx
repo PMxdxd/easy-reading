@@ -46,32 +46,6 @@ function App() {
     }
   };
 
-  // ファイルを保存する処理
-  const handleSaveFile = async () => {
-    try {
-      // 保存ダイアログを表示
-      const filePath = await save({
-        filters: [
-          {
-            name: "テキスト",
-            extensions: ["txt"],
-          },
-        ],
-      });
-
-      if (filePath) {
-        // ファイルに保存
-        // 文字列をエンコードしてUint8Array型に変換
-        const encoder = new TextEncoder();
-        const data = encoder.encode(inputText);
-        await writeFile(filePath, data);
-        setErrorMessage("");
-      }
-    } catch (err) {
-      setErrorMessage(`ファイルを保存できませんでした: ${err}`);
-    }
-  };
-
   return (
     <div className="container">
       <h1>文節リーダー</h1>
@@ -80,9 +54,6 @@ function App() {
       <div className="file-buttons">
         <button onClick={handleOpenFile} disabled={isLoading}>
           ファイルを開く
-        </button>
-        <button onClick={handleSaveFile} disabled={isLoading}>
-          保存
         </button>
       </div>
 
