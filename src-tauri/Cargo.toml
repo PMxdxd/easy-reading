@@ -1,0 +1,29 @@
+[package]
+name = "easy-reading"
+version = "0.0.0"
+description = "A Tauri App"
+authors = ["you"]
+license = ""
+repository = ""
+edition = "2021"
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+tauri = { version = "2.0", features = [] }
+
+# Lindera関連は一時的にコメントアウト
+# lindera = "0.24.0"
+# lindera-ipadic = "0.24.0"
+
+# プラグインを安定版に修正
+tauri-plugin-fs = "2.2.0"        
+tauri-plugin-dialog = "2.0.3"    
+tauri-plugin-shell = "2.0.2"     
+# tauri-plugin-window = { version = "2.0.0-alpha.2" }    # 互換性の問題があるため削除
+
+[build-dependencies]
+tauri-build = { version = "2.0", features = [] }
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
