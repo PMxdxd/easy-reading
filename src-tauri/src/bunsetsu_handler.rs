@@ -1,4 +1,4 @@
-use lindera::dictionary::{DictionaryKind};
+use lindera::dictionary::DictionaryKind;
 use lindera::mode::Mode;
 use lindera::tokenizer::Tokenizer;
 use serde::{Deserialize, Serialize};
@@ -10,7 +10,8 @@ static mut TOKENIZER: Option<Tokenizer> = None;
 pub fn create_tokenizer() -> Result<(), Box<dyn std::error::Error>> {
     unsafe {
         if TOKENIZER.is_none() {
-            let dictionary = lindera::dictionary::load_dictionary_from_kind(DictionaryKind::IPADIC)?;
+            let dictionary =
+                lindera::dictionary::load_dictionary_from_kind(DictionaryKind::IPADIC)?;
             let segmenter = lindera::segmenter::Segmenter::new(Mode::Normal, dictionary, None);
             TOKENIZER = Some(Tokenizer::new(segmenter));
         }
@@ -74,7 +75,7 @@ fn check_particle_boundary(current: &TokenInfo, next: &TokenInfo) -> bool {
     let particle_type = current.pos_detail_1().unwrap_or("");
     let particle_text = current.text.as_str();
     let next_pos = next.pos();
-    
+
     match particle_type {
         "格助詞" => {
             match particle_text {
@@ -86,14 +87,15 @@ fn check_particle_boundary(current: &TokenInfo, next: &TokenInfo) -> bool {
                 "と" => {
                     // 引用の「と」は区切らない
                     if let Some(base) = next.base_form() {
-                        if matches!(base, "いう" | "言う" | "思う" | "考える" | "する" | "なる") {
+                        if matches!(base, "いう" | "言う" | "思う" | "考える" | "する" | "なる")
+                        {
                             return false;
                         }
                     }
                     true
                 }
                 // その他の格助詞（が、を、に、で、へ、から、まで、より）は区切る
-                _ => true
+                _ => true,
             }
         }
         "係助詞" | "副助詞" => {
@@ -108,12 +110,12 @@ fn check_particle_boundary(current: &TokenInfo, next: &TokenInfo) -> bool {
                     // 「て」「で」は次が補助動詞の場合は区切らない
                     if next_pos == "動詞" {
                         if let Some(detail) = next.pos_detail_1() {
-                            return detail != "非自立"
+                            return detail != "非自立";
                         }
                     }
                     next_pos != "助動詞"
                 }
-                _ => true
+                _ => true,
             }
         }
         "終助詞" => {
@@ -141,7 +143,7 @@ fn check_particle_boundary(current: &TokenInfo, next: &TokenInfo) -> bool {
 fn check_conjugation_boundary(current: &TokenInfo, next: &TokenInfo) -> bool {
     let conjugation = current.conjugation_form().unwrap_or("");
     let next_pos = next.pos();
-    
+
     match conjugation {
         "終止形" | "基本形" => {
             // 文末なので基本的に区切る
@@ -155,16 +157,16 @@ fn check_conjugation_boundary(current: &TokenInfo, next: &TokenInfo) -> bool {
         "連用形" => {
             // 連用形は文脈による
             match next_pos {
-                "助動詞" => false,  // 〜している、〜してある など
+                "助動詞" => false, // 〜している、〜してある など
                 "動詞" => {
                     // 複合動詞かどうか判定
                     if let Some(detail) = next.pos_detail_1() {
-                        detail == "非自立"  // 補助動詞なら区切らない
+                        detail == "非自立" // 補助動詞なら区切らない
                     } else {
-                        true  // 独立した動詞なら区切る
+                        true // 独立した動詞なら区切る
                     }
                 }
-                _ => true
+                _ => true,
             }
         }
         "仮定形" => {
@@ -175,7 +177,7 @@ fn check_conjugation_boundary(current: &TokenInfo, next: &TokenInfo) -> bool {
             // 文末なので区切る
             true
         }
-        _ => false
+        _ => false,
     }
 }
 
@@ -183,7 +185,7 @@ fn check_conjugation_boundary(current: &TokenInfo, next: &TokenInfo) -> bool {
 fn check_auxiliary_boundary(current: &TokenInfo, next: &TokenInfo) -> bool {
     let aux_text = current.text.as_str();
     let next_pos = next.pos();
-    
+
     // 助動詞の種類による判定
     match aux_text {
         "いる" | "ある" | "おる" => {
@@ -244,8 +246,8 @@ fn is_bunsetsu_boundary(current: &TokenInfo, next: &TokenInfo) -> bool {
         "名詞" => {
             // 名詞の後の処理
             match next_pos {
-                "助詞" => false,  // 名詞＋助詞は一つの文節
-                "接尾詞" => false,  // 名詞＋接尾詞も結合
+                "助詞" => false,   // 名詞＋助詞は一つの文節
+                "接尾詞" => false, // 名詞＋接尾詞も結合
                 "名詞" => {
                     // 複合名詞の判定
                     if let Some(detail) = current.pos_detail_1() {
@@ -257,13 +259,13 @@ fn is_bunsetsu_boundary(current: &TokenInfo, next: &TokenInfo) -> bool {
                                 true
                             }
                         } else {
-                            false  // 一般名詞は結合
+                            false // 一般名詞は結合
                         }
                     } else {
                         false
                     }
                 }
-                _ => false
+                _ => false,
             }
         }
         "副詞" => {
@@ -274,16 +276,16 @@ fn is_bunsetsu_boundary(current: &TokenInfo, next: &TokenInfo) -> bool {
             // 連体詞は次の名詞と結合
             false
         }
-        _ => false
+        _ => false,
     }
 }
 
 pub fn split_text_into_bunsetsu(text: String) -> Result<Vec<String>, Box<dyn std::error::Error>> {
     eprintln!("入力テキスト: {}", text);
-    
+
     let tokenizer = get_tokenizer();
     let mut tokens = tokenizer.tokenize(&text)?;
-    
+
     // トークンから情報を抽出
     let mut token_infos = Vec::new();
     eprintln!("\n--- トークン情報 ---");
@@ -293,7 +295,7 @@ pub fn split_text_into_bunsetsu(text: String) -> Result<Vec<String>, Box<dyn std
             text: token.text.to_string(),
             features: features.clone(),
         };
-        
+
         // 簡潔なログ出力（v2形式）
         eprint!("[{}]「{}」{}・", i, token_info.text, token_info.pos());
         if let Some(detail) = token_info.pos_detail_1() {
@@ -305,25 +307,27 @@ pub fn split_text_into_bunsetsu(text: String) -> Result<Vec<String>, Box<dyn std
             }
         }
         eprintln!();
-        
+
         token_infos.push(token_info);
     }
-    
+
     let mut phrases = Vec::new();
     let mut current_phrase = String::new();
-    
+
     for i in 0..token_infos.len() {
         let info = &token_infos[i];
         current_phrase.push_str(&info.text);
-        
+
         // 次のトークンがある場合、文節境界を判定
         if i < token_infos.len() - 1 {
             let next_info = &token_infos[i + 1];
-            
+
             let is_boundary = is_bunsetsu_boundary(info, next_info);
-            eprintln!("境界判定: \"{}\" -> \"{}\" = {}", 
-                      info.text, next_info.text, is_boundary);
-            
+            eprintln!(
+                "境界判定: \"{}\" -> \"{}\" = {}",
+                info.text, next_info.text, is_boundary
+            );
+
             if is_boundary {
                 if !current_phrase.is_empty() {
                     eprintln!("文節確定: \"{}\"", current_phrase);
@@ -333,14 +337,34 @@ pub fn split_text_into_bunsetsu(text: String) -> Result<Vec<String>, Box<dyn std
             }
         }
     }
-    
+
     // 最後の文節を追加
     if !current_phrase.is_empty() {
         eprintln!("最後の文節: \"{}\"", current_phrase);
         phrases.push(current_phrase);
     }
-    
+
     eprintln!("\n最終結果: {:?}", phrases);
-    
+
     Ok(phrases)
+}
+
+// テスト用のmain関数（必要に応じてコメントアウトまたは削除）
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_bunsetsu_split() -> Result<(), Box<dyn std::error::Error>> {
+        let text = "人間は文章を読む時、滑らかに文字を読んでいる訳ではなく、「１点を見つめる」という事と「高速に視線を移動する」という事を繰り返しています。".to_string();
+        let bunsetsu = split_text_into_bunsetsu(text)?;
+
+        for b in &bunsetsu {
+            print!("{} / ", b);
+        }
+        println!();
+
+        assert!(!bunsetsu.is_empty());
+        Ok(())
+    }
 }
